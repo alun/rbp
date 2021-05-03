@@ -1,22 +1,25 @@
 name: Rust
 
+defaults:
+  run:
+    shell: bash
+    working-directory: scripts
+
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cd service && cargo build --verbose
-    - name: Run tests
-      run: cd service && cargo test --verbose
+      - uses: actions/checkout@v2
+      - run: source ./build-fns
+      - name: Build
+        run: build-image service

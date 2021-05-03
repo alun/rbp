@@ -1,0 +1,47 @@
+#!/bin/sh
+
+BUILD_DIR=${CI_BUILDS_DIR:-$HOME/build-docker}
+echo "Using build dir $BUILD_DIR"
+
+CARGO_HOME=$BUILD_DIR/cargo-home
+CARGO_TARGET_DIR=$BUILD_DIR/cargo-target-${CI_PROJECT_TITLE:-default}
+
+CARGO_HOME_MOUNT=/usr/src/cargo-home
+CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
+
+build_source() {
+  docker run -i --rm \
+    -v ${CI_PROJECT_DIR:-$PWD}:/usr/src/app \
+    -v $CARGO_HOME:$CARGO_HOME_MOUNT \
+    -v $CARGO_TARGET_DIR:$CARGO_TARGET_DIR_MOUNT \
+    -e CARGO_HOME=$CARGO_HOME_MOUNT  \
+    -e CARGO_TARGET_DIR=$CARGO_TARGET_DIR_MOUNT \
+    -e DATABASE_URL=$DATABASE_URL \
+    --workdir /usr/src/app \
+    rust:1.51-bullseye \
+    bash -c '
+      cargo test --release --locked
+      cargo build --release --locked
+    '
+}
+
+build_image() {
+  local APP=$1
+  mkdir release || true
+  cp ${CARGO_TARGET_DIR}/release/${APP} release/
+  docker build -t ${APP} \
+    --build-arg APP=${APP} \
+    .
+}
+
+publish_image() {
+  local APP=$1
+  local VERSION=${2:-latest}
+  local IMAGE_PATH=${CI_REGISTRY_IMAGE}/${APP}:${VERSION}
+  echo "Pushing to ${IMAGE_PATH}"
+  docker tag ${APP} ${IMAGE_PATH}
+  docker tag ${APP} ${IMAGE_PATH}
+  docker push ${IMAGE_PATH}
+  echo Published ${APP}
+  docker images "${APP}"
+}

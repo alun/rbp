@@ -1,0 +1,22 @@
+[workspace]
+
+members = [
+    "accounting",
+    "accounting-client",
+    "accounting-core",
+    "blockchain",
+    "commons",
+    "core-api",
+    "exchanges",
+    "futures-roller",
+    "fx-stats",
+    "ledger-updater",
+    "monitoring",
+    "persistence",
+    "quotes-updater",
+    "sheets",
+    "trades-exporter",
+    "trading-desk",
+    "trading-system",
+    "tx-watcher",
+]
