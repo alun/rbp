@@ -9,6 +9,8 @@ CARGO_TARGET_DIR=$BUILD_DIR/cargo-target-${GITHUB_REPOSITORY:-default}
 CARGO_HOME_MOUNT=/usr/src/cargo-home
 CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
 
+BUILDER_IMAGE=registry.gitlab.com/katlex/github-runner:rbp-rust-builder
+
 build_source() {
   docker run -i --rm \
     -v ${GITHUB_WORKSPACE:-$PWD}:/usr/src/app \
@@ -18,8 +20,9 @@ build_source() {
     -e CARGO_TARGET_DIR=$CARGO_TARGET_DIR_MOUNT \
     -e DATABASE_URL=$DATABASE_URL \
     --workdir /usr/src/app \
-    rust:1.51-bullseye \
+    $BUILDER_IMAGE \
     bash -c '
+      set -e
       cargo test --release --locked
       cargo build --release --locked
     '
