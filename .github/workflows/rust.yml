@@ -23,3 +23,11 @@ jobs:
         run: |
           source ./build_fns
           build_source
+      - name: Build Image
+        run: |
+          source ./build_fns
+          build_image service
+      - name: Publish Image
+        run: |
+          source ./build_fns
+          publish_image service

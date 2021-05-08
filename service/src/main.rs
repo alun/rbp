@@ -23,12 +23,8 @@ fn calc_weights(py: Python, tickers: Vec<&str>) -> PyResult<Vec<f64>> {
     (vec![
       // TODO use env var for this
       "",
-      "/opt/anaconda3/lib/python37.zip",
-      "/opt/anaconda3/lib/python3.7",
-      "/opt/anaconda3/lib/python3.7/lib-dynload",
       "/Users/alunacharskii/.local/lib/python3.7/site-packages",
       "/opt/anaconda3/lib/python3.7/site-packages",
-      "/opt/anaconda3/lib/python3.7/site-packages/aeosa",
     ],),
     None,
   )?;

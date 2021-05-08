@@ -10,6 +10,7 @@ CARGO_HOME_MOUNT=/usr/src/cargo-home
 CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
 
 BUILDER_IMAGE=registry.gitlab.com/katlex/github-runner:rbp-rust-builder
+IMAGE_REGISTRY=registry.gitlab.com/katlex/rbp
 
 build_source() {
   docker run -i --rm \
@@ -30,17 +31,19 @@ build_source() {
 
 build_image() {
   local APP=$1
+  local DOCKER_FILE=$2
   mkdir release || true
   cp ${CARGO_TARGET_DIR}/release/${APP} release/
   docker build -t ${APP} \
     --build-arg APP=${APP} \
+    -f ${DOCKER_FILE:-Dockerfile}
     .
 }
 
 publish_image() {
   local APP=$1
   local VERSION=${2:-latest}
-  local IMAGE_PATH=${CI_REGISTRY_IMAGE}/${APP}:${VERSION}
+  local IMAGE_PATH=${IMAGE_REGISTRY}/${APP}:${VERSION}
   echo "Pushing to ${IMAGE_PATH}"
   docker tag ${APP} ${IMAGE_PATH}
   docker tag ${APP} ${IMAGE_PATH}

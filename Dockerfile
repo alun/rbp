@@ -1,12 +1,11 @@
-FROM frolvlad/alpine-glibc
+FROM debian:bullseye-slim
 
-ARG APP
+RUN apt update &&\
+  apt install -y libpython3.9 pip &&\
+  pip install pandas pandas_datareader scipy 
 
-# TODO understand why below still doesnt work 
-# FROM alpine:latest
-# RUN apk add --update libgcc gcompat libc6-compat
+COPY release/service /usr/local/bin/service
+COPY rpar.py /usr/local/bin
 
-COPY release/${APP} /usr/local/bin/${APP}
-
-ENV APP $APP
-CMD ["ash", "-c", "exec ${APP}"]
+WORKDIR /usr/local/bin
+CMD /usr/local/bin/service
