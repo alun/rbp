@@ -3,7 +3,6 @@ name: Rust
 defaults:
   run:
     shell: bash
-    working-directory: scripts
 
 on:
   push:
@@ -20,6 +19,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: source ./build_fns
       - name: Build
-        run: build_image service
+        run: |
+          source ./build_fns
+          build_sources

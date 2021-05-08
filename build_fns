@@ -4,14 +4,14 @@ BUILD_DIR=${CI_BUILDS_DIR:-$HOME/build-docker}
 echo "Using build dir $BUILD_DIR"
 
 CARGO_HOME=$BUILD_DIR/cargo-home
-CARGO_TARGET_DIR=$BUILD_DIR/cargo-target-${CI_PROJECT_TITLE:-default}
+CARGO_TARGET_DIR=$BUILD_DIR/cargo-target-${GITHUB_REPOSITORY:-default}
 
 CARGO_HOME_MOUNT=/usr/src/cargo-home
 CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
 
 build_source() {
   docker run -i --rm \
-    -v ${CI_PROJECT_DIR:-$PWD}:/usr/src/app \
+    -v ${GITHUB_WORKSPACE:-$PWD}:/usr/src/app \
     -v $CARGO_HOME:$CARGO_HOME_MOUNT \
     -v $CARGO_TARGET_DIR:$CARGO_TARGET_DIR_MOUNT \
     -e CARGO_HOME=$CARGO_HOME_MOUNT  \
