@@ -20,7 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: pwd
-      - run: source ./build-fns
+      - run: source ./build_fns
       - name: Build
-        run: build-image service
+        run: build_image service
