@@ -22,4 +22,4 @@ jobs:
       - name: Build
         run: |
           source ./build_fns
-          build_sources
+          build_source
