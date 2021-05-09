@@ -7,8 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-rt = "^2.2"
+actix-web = "^3.3"
 anyhow = "^1.0"
+dotenv = "^0.15"
+env_logger = "^0.8"
+listenfd = "^0.3"
 
 [dependencies.pyo3]
-version = "0.13.2"
+version = "^0.13"
 features = ["auto-initialize"]
