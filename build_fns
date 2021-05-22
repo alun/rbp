@@ -12,6 +12,8 @@ CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
 BUILDER_IMAGE=registry.gitlab.com/katlex/github-runner:rbp-rust-builder
 IMAGE_REGISTRY=registry.gitlab.com/katlex/rbp
 
+VERSION="$(date '+%m-%d')-${GITHUB_SHA:0:10}"
+
 build_source() {
   docker run -i --rm \
     -v ${GITHUB_WORKSPACE:-$PWD}:/usr/src/app \

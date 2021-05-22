@@ -1,4 +1,4 @@
-name: Rust
+name: Master
 
 defaults:
   run:
@@ -8,7 +8,7 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches: []
 
 env:
   CARGO_TERM_COLOR: always
@@ -31,3 +31,4 @@ jobs:
         run: |
           source ./build_fns
           publish_image service
+          publish_image service $VERSION
