@@ -21,6 +21,8 @@ jobs:
           echo $PWD
           echo $0
           cat $0
+          cp $0 /tmp/script
+          cat /tmp/script
           echo $BUILDER_IMAGE
       - name: Build
         run: build_source
