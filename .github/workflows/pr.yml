@@ -18,17 +18,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Pre-Build
-        run: |
-          echo $PWD
-          echo $0
-          cat $0
-          cp $0 /tmp/script
-          cat /tmp/script
-          echo $BUILDER_IMAGE
       - name: Build
         run: build_source
-      - name: Build Service
+      - name: Build Service Image
         run: build_image service
-      - name: Publish Service
+      - name: Publish Service Image
         run: publish_image service
