@@ -1,5 +1,3 @@
-#!/bin/sh
-
 BUILD_DIR=${CI_BUILDS_DIR:-$HOME/build-docker}
 echo "Using build dir $BUILD_DIR"
 
@@ -11,6 +9,8 @@ CARGO_TARGET_DIR_MOUNT=/usr/src/cargo-target
 
 BUILDER_IMAGE=registry.gitlab.com/katlex/github-runner:rbp-rust-builder
 IMAGE_REGISTRY=registry.gitlab.com/katlex/rbp
+
+COMMIT_BASED_VERSION="$(date '+%m-%d')-${GITHUB_SHA:0:10}"
 
 build_source() {
   docker run -i --rm \
