@@ -1,9 +1,5 @@
 name: Pull request
 
-defaults:
-  run:
-    shell: "bash --noprofile --rcfile build_fns -eo pipefail {0}"
-
 on:
   pull_request:
     branches: [master]
@@ -14,11 +10,16 @@ env:
 jobs:
   build:
     runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash --noprofile --rcfile build_fns -eo pipefail {0}
 
     steps:
       - uses: actions/checkout@v2
       - name: Build
-        run: build_source
+        run: |
+          echo $0
+          build_source
       - name: Build Service
         run: build_image service
       - name: Publish Service
