@@ -2,7 +2,7 @@ name: Pull request
 
 defaults:
   run:
-    shell: bash --noprofile --rcfile build_fns -eo pipefail {0}
+    shell: "bash --noprofile --rcfile build_fns -eo pipefail {0}"
 
 on:
   pull_request:
