@@ -19,6 +19,7 @@ jobs:
       - name: Build
         run: |
           echo $0
+          cat $0
           build_source
       - name: Build Service
         run: build_image service
