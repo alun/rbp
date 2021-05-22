@@ -1,12 +1,10 @@
-name: Rust
+name: Pull request
 
 defaults:
   run:
-    shell: bash
+    shell: bash --noprofile --rcfile build_fns -eo pipefail {0}
 
 on:
-  push:
-    branches: []
   pull_request:
     branches: [master]
 
@@ -20,14 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build
-        run: |
-          source ./build_fns
-          build_source
-      - name: Build Image
-        run: |
-          source ./build_fns
-          build_image service
-      - name: Publish Image
-        run: |
-          source ./build_fns
-          publish_image service
+        run: build_source
+      - name: Build Service
+        run: build_image service
+      - name: Publish Service
+        run: publish_image service
