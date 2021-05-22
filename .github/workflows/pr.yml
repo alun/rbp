@@ -16,11 +16,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build
+      - name: Pre-Build
         run: |
+          echo $PWD
           echo $0
           cat $0
-          build_source
+          echo $BUILDER_IMAGE
+      - name: Build
+        run: build_source
       - name: Build Service
         run: build_image service
       - name: Publish Service
