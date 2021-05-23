@@ -1,5 +1,7 @@
 [workspace]
 
 members = [
+  "core",
   "service",
+  "ui"
 ]
