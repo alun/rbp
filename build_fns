@@ -16,7 +16,11 @@ COMMIT_BASED_VERSION="$(date '+%m-%d')-${GITHUB_SHA:0:10}"
 
 run_in_docker() {
   SCRIPT=$1
-  docker run -i --rm \
+  local INTERACTIVE=
+  case "$-" in
+    *i*) INTERACTIVE=-t ;;
+  esac
+  docker run -i $INTERACTIVE --rm \
     -v ${GITHUB_WORKSPACE:-$PWD}:/usr/src/app \
     -v $CARGO_HOME:$CARGO_HOME_MOUNT \
     -v $CARGO_TARGET_DIR:$CARGO_TARGET_DIR_MOUNT \
@@ -51,8 +55,9 @@ build_image() {
 build_ui_source() {
   local APP=$1
   run_in_docker '
+    set -e
     cd "'${APP}'"
-    yarn
+    yarn install
     echo wasm-pack build --release --target web -- --locked 
     wasm-pack build --release --target web -- --locked 
     rollup -c
