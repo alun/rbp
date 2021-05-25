@@ -15,6 +15,7 @@ IMAGE_REGISTRY=registry.gitlab.com/katlex/rbp
 COMMIT_BASED_VERSION="$(date '+%m-%d')-${GITHUB_SHA:0:10}"
 
 run_in_docker() {
+  docker pull $BUILDER_IMAGE
   SCRIPT=$1
   local INTERACTIVE=
   case "$-" in
@@ -29,12 +30,11 @@ run_in_docker() {
     -e DATABASE_URL=$DATABASE_URL \
     --workdir /usr/src/app \
     $BUILDER_IMAGE \
-    bash -c $SCRIPT
+    bash --noprofile --norc -eo pipefail -c $SCRIPT
 }
 
 build_source() {
   run_in_docker '
-    set -e
     cargo test --release --locked
     cargo build --release --locked
   '
@@ -55,9 +55,8 @@ build_image() {
 build_ui_source() {
   local APP=$1
   run_in_docker '
-    set -e
     cd "'${APP}'"
-    yarn install
+    yarn
     echo wasm-pack build --release --target web -- --locked 
     wasm-pack build --release --target web -- --locked 
     rollup -c
