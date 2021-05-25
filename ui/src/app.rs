@@ -55,7 +55,7 @@ impl Component for App {
     let route = route_service.get_route();
     route_service.register_callback(link.callback(Msg::RouteChanged));
 
-    let mut app = App {
+    let mut app = Self {
       rbp_service: Mrc::new(RbpService {
         base: format!("{}/service/v1", api_origin()).to_owned(),
       }),
