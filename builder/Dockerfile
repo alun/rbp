@@ -9,7 +9,15 @@ RUN apt update &&\
 
 ENV LIBRARY_PATH /usr/lib/python3.9/config-3.9-x86_64-linux-gnu
 
-# node/yarn
+# node/yarn/rollup
 RUN apt update &&\
   apt install -y nodejs npm &&\
   npm i -g yarn
+
+RUN npm i -g rollup
+
+# avoid using root
+RUN groupadd -g 1000 builder &&\
+  useradd -g 1000 -u 1000 -m -s /bin/bash builder 
+
+USER builder

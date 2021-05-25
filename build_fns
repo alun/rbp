@@ -20,6 +20,10 @@ run_in_docker() {
   case "$-" in
     *i*) INTERACTIVE=-t ;;
   esac
+
+  mkdir -p $CARGO_HOME || true
+  mkdir -p $CARGO_TARGET_DIR || true
+
   docker run -i $INTERACTIVE --rm \
     -v ${GITHUB_WORKSPACE:-$PWD}:/usr/src/app \
     -v $CARGO_HOME:$CARGO_HOME_MOUNT \
