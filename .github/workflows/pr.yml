@@ -21,7 +21,7 @@ jobs:
       - name: Build Source
         run: build_source
       - name: Build UI Source
-        run: build_ui_source
+        run: build_ui_source ui
       - name: Build Service Image
         run: build_image service
       - name: Build UI Image
