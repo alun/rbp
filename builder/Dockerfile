@@ -1,4 +1,4 @@
-FROM rust:1.52-bullseye
+FROM rust:1.51-bullseye
 
 # wasm pack
 RUN cargo install wasm-pack
