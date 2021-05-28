@@ -1,3 +1,4 @@
+#FROM rust:1.51-bullseye
 FROM debian:bullseye
 
 # apt packages

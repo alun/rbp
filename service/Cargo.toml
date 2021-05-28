@@ -1,20 +1,22 @@
 [package]
 name = "service"
 version = "0.1.0"
-authors = ["alunacharskii"]
+authors = [
+    "Alex Lunacharskii <alun@katlex.com>"
+]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-cors = "^0.5"
 actix-rt = "^2.2"
 actix-web = "^3.3"
 anyhow = "^1.0"
+core = { path = "../core", features = ["server"] }
 dotenv = "^0.15"
 env_logger = "^0.8"
 listenfd = "^0.3"
-qstring = "0.7.2"
-
-[dependencies.pyo3]
-version = "^0.13"
-features = ["auto-initialize"]
+pyo3 = { version = "^0.13", features = ["auto-initialize"] }
+serde = { version = "^1.0", features = ["derive"] }
+serde_qs = { version = "^0.8", features = ["actix"] }

@@ -18,9 +18,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build
+      - name: Build Source
         run: build_source
+      - name: Build UI Source
+        run: build_ui_source ui
       - name: Build Service Image
         run: build_image service
+      - name: Build UI Image
+        run: build_ui_image ui
       - name: Publish Service Image
         run: publish_image service
+      - name: Publish UI Image
+        run: publish_image ui
