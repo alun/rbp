@@ -1,3 +1,5 @@
+use core::GetWeightsQuery;
+
 use anyhow::{anyhow, Context, Result};
 use http::{request::Builder, Method};
 use serde::{de::DeserializeOwned, Serialize};
@@ -16,6 +18,14 @@ pub struct RbpService {
 }
 
 impl RbpService {
+  pub fn get_weigths(
+    &self,
+    query: GetWeightsQuery,
+    callback: Callback<Result<Vec<f64>>>,
+  ) -> FetchTask {
+    self.get("weights", Some(&query), callback)
+  }
+
   pub fn get<'a, OUT, QueryParams>(
     &self,
     path: &str,
@@ -27,8 +37,8 @@ impl RbpService {
     OUT: 'static,
     QueryParams: Serialize,
   {
-    let full_path = query_params
-      .map(|params| format!("{}?{}", path, serde_qs::to_string(params).unwrap()));
+    let full_path =
+      query_params.map(|params| format!("{}?{}", path, serde_qs::to_string(params).unwrap()));
     self.send(
       Method::GET,
       Nothing,

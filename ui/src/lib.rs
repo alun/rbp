@@ -1,6 +1,8 @@
 #![recursion_limit = "512"]
 
 mod app;
+mod components;
+mod services;
 
 use wasm_bindgen::prelude::*;
 use web_sys::Window;
