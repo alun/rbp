@@ -1,6 +1,8 @@
 #![recursion_limit = "512"]
 
 mod app;
+mod components;
+mod services;
 
 use wasm_bindgen::prelude::*;
 use web_sys::Window;
@@ -44,7 +46,7 @@ pub async fn run_app() -> Result<(), JsValue> {
     Some("debug") => log::Level::Debug,
     _ => log::Level::Info,
   };
-  wasm_logger::init(wasm_logger::Config::new(log_level).module_prefix("rbp"));
+  wasm_logger::init(wasm_logger::Config::new(log_level));
   log::debug!("Debug is on");
   log::info!("Started app");
   yew::start_app_with_props::<app::App>(app::Props {});

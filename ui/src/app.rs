@@ -1,16 +1,13 @@
-mod services;
-
-use anyhow::Result;
+use super::components;
+use super::services;
 use services::RbpService;
+use yew::prelude::*;
 use yew::virtual_dom::VNode;
-use yew::{prelude::*, services::fetch::FetchTask};
 use yew_router::{prelude::*, Switch};
 use yewtil::ptr::Mrc;
 
-use core::GetWeightsQuery;
-
 #[derive(Switch, Clone, PartialEq)]
-enum AppRoute {
+pub enum AppRoute {
   #[to = "/"]
   Main,
 }
@@ -28,51 +25,40 @@ fn api_origin() -> String {
 
 pub enum Msg {
   ChangeRoute(AppRoute),
-  UpdateWeightsResults(Result<Vec<f64>>),
   RouteChanged(Route<()>),
 }
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {}
 
+// TODO move to components::ui_router::Component
 pub struct App {
   rbp_service: Mrc<RbpService>,
-  get_weights_task: Option<FetchTask>,
   link: ComponentLink<Self>,
 
   route: Route<()>,
   route_service: RouteService<()>,
-
-  fetched_weights: Vec<f64>,
 }
 
 impl Component for App {
   type Message = Msg;
   type Properties = Props;
 
-  fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+  fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
     let mut route_service: RouteService<()> = RouteService::new();
     let route = route_service.get_route();
     route_service.register_callback(link.callback(Msg::RouteChanged));
 
-    let mut app = Self {
+    let instance = Self {
       rbp_service: Mrc::new(RbpService {
         base: format!("{}/service/v1", api_origin()).to_owned(),
       }),
-      get_weights_task: None,
       link,
       route,
       route_service,
-      fetched_weights: vec![],
     };
     log::info!("App created");
-    app.get_weights(GetWeightsQuery {
-      tickers: vec!["FB", "AAPL", "GOOGL"]
-        .iter()
-        .map(ToString::to_string)
-        .collect(),
-    });
-    app
+    instance
   }
 
   fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -84,10 +70,6 @@ impl Component for App {
         self.route = app_route.into();
         self.route_service.set_route(&self.route.route, ());
       }
-      Msg::UpdateWeightsResults(weights) => match weights {
-        Ok(weights) => self.fetched_weights = weights,
-        Err(_) => {} // TODO show error
-      },
     }
     true
   }
@@ -119,15 +101,6 @@ impl Component for App {
 }
 
 impl App {
-  fn get_weights(&mut self, request: GetWeightsQuery) {
-    log::info!("Getting weights");
-    self.get_weights_task = Some(self.rbp_service.get::<Vec<f64>, _>(
-      "weights", // TODO move under service API
-      Some(&request),
-      self.link.callback(Msg::UpdateWeightsResults),
-    ));
-  }
-
   fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
     self
       .link
@@ -137,7 +110,7 @@ impl App {
   fn render_route(&self) -> Html {
     match AppRoute::switch(self.route.clone()) {
       Some(AppRoute::Main) => {
-        html! { format!("{:?}", self.fetched_weights) }
+        html! { <components::weights_calculator::Component rbp_service={self.rbp_service.clone()} /> }
       }
       _ => VNode::from("404"),
     }
