@@ -62,7 +62,7 @@ build_ui_source() {
   local APP=$1
   run_in_docker '
     print_info() {
-      echo ''\033[1;35m''$@$''\033[0m'' # light purple
+      echo '\''\033[1;35m'\''$@$'\''\033[0m'\'' # light purple
     }
 
     cd "'${APP}'"
