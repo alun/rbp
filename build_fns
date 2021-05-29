@@ -14,8 +14,11 @@ IMAGE_REGISTRY=registry.gitlab.com/katlex/rbp
 
 COMMIT_BASED_VERSION="$(date '+%m-%d')-${GITHUB_SHA:0:7}"
 
-run_in_docker() {
+update_builder_image() {
   docker pull $BUILDER_IMAGE
+}
+
+run_in_docker() {
   local INTERACTIVE=
   case "$-" in
     *i*) INTERACTIVE=-t ;;
@@ -59,8 +62,8 @@ build_ui_source() {
   local APP=$1
   run_in_docker '
     print_info() {
-      local CYAN='\033[0;36m'
-      local NO_COLOR='\033[0m'
+      local CYAN='\''\033[0;36m'\''
+      local NO_COLOR='\''\033[0m'\''
       echo ${CYAN}$@${NO_COLOR}
     }
 
