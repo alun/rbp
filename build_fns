@@ -59,17 +59,29 @@ build_ui_source() {
   local APP=$1
   run_in_docker '
     cd "'${APP}'"
+    echo installing npm deps
     yarn
-    echo wasm-pack 
+
+    echo running wasm-pack 
     wasm-pack build --release --target web --mode no-install -- --locked 
-    rollup -c
-    rm -rf ${CARGO_TARGET_DIR}/release/"'${APP}'" || true
-    mkdir -p ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
-    cp index.html ${CARGO_TARGET_DIR}/release/"'${APP}'"
-    cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
+
+    echo optimizing wasm with binaryen toolkit
     wasm-opt -Oz -o pkg/"'${APP}'"_bg.wasm~ pkg/"'${APP}'"_bg.wasm
     mv pkg/"'${APP}'"_bg.wasm~ pkg/"'${APP}'"_bg.wasm
+
+    echo rolling up js
+    rollup -c
+
+    echo preparing relase # copies build artefacts outside of docker container so to make it available for build_ui_image
+
+    rm -rf ${CARGO_TARGET_DIR}/release/"'${APP}'" || true
+    mkdir -p ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
+
+    cp index.html ${CARGO_TARGET_DIR}/release/"'${APP}'"
+    cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp pkg/"'${APP}'"_bg.wasm ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
+
+    echo cleaing up
     rm -rf node_modules
     rm -rf pkg
   '
