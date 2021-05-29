@@ -88,7 +88,7 @@ build_ui_source() {
     cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp pkg/"'${APP}'"_bg.wasm ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
 
-    print_info ^^ cleaing up
+    print_info ^^ cleaning up
     rm -rf node_modules
     rm -rf pkg
   '
