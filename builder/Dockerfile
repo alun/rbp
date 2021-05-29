@@ -22,18 +22,14 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs >rustup.sh
 RUN sh rustup.sh -y
 
 ENV PATH="/home/builder/.cargo/bin:${PATH}"
-
-# wasm 
-RUN /home/builder/.cargo/bin/rustup target add wasm32-unknown-unknown  &&\
-  cargo install wasm-pack
-
-# build template project to cache deps
+ENV PATH="/home/builder/.cache/.wasm-pack/.wasm-bindgen-cargo-install-0.2.74/bin:${PATH}"
 ENV USER=builder
 
-RUN cargo install cargo-generate
+# wasm 
+RUN rustup target add wasm32-unknown-unknown  &&\
+  cargo install wasm-pack wasm-bindgen-cli
 
-RUN cargo generate --git https://github.com/rustwasm/wasm-pack-template --name temp &&\
-  cd temp &&\
-  cargo build
+RUN curl -OL 'https://github.com/WebAssembly/binaryen/releases/download/version_90/binaryen-version_90-x86-linux.tar.gz' &&\
+  tar xzf binaryen-version_90-x86-linux.tar.gz
 
-ENV PATH="/home/builder/.cache/.wasm-pack/.wasm-bindgen-cargo-install-0.2.74/bin:${PATH}"
+ENV PATH="/home/builder/binaryen-version_90:${PATH}"
