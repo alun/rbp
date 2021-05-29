@@ -67,6 +67,8 @@ build_ui_source() {
     mkdir -p ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp index.html ${CARGO_TARGET_DIR}/release/"'${APP}'"
     cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
+    wasm-opt -Oz -o pkg/"'${APP}'"_bg.wasm~ pkg/"'${APP}'"_bg.wasm
+    mv pkg/"'${APP}'"_bg.wasm~ pkg/"'${APP}'"_bg.wasm
     cp pkg/"'${APP}'"_bg.wasm ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     rm -rf node_modules
     rm -rf pkg
