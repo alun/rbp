@@ -62,8 +62,8 @@ build_ui_source() {
   local APP=$1
   run_in_docker '
     print_info() {
-      local COLOR="\033[1;35m"
-      local NO_COLOR="\033[0m"
+      local COLOR='"\033[1;35m"'
+      local NO_COLOR='"\033[0m"'
       echo ${COLOR}$@${NO_COLOR}
     }
 
