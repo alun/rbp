@@ -1708,6 +1708,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "listenfd",
+ "log",
  "pyo3",
  "serde",
  "serde_qs",
