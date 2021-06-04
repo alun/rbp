@@ -69,6 +69,9 @@ build_ui_source() {
     print_info ^^ installing npm deps
     yarn
 
+    print_info ^^ building css
+    npx tailwindcss build styles.css -o pkg/styles.css
+
     print_info ^^ running wasm-pack
     wasm-pack build --release --target web --mode no-install -- --locked 
 
@@ -86,6 +89,7 @@ build_ui_source() {
 
     cp index.html ${CARGO_TARGET_DIR}/release/"'${APP}'"
     cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
+    cp pkg/styles.css ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp pkg/"'${APP}'"_bg.wasm ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
 
     print_info ^^ cleaning up

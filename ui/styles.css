@@ -1,0 +1,7 @@
+.empty input:not(:focus) + label {
+  transform: translateY(-50%);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
