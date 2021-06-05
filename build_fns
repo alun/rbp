@@ -61,6 +61,8 @@ build_image() {
 build_ui_source() {
   local APP=$1
   run_in_docker '
+    export NODE_ENV=production # allows tailwind CSS to purge result CSS from unnecessary classes
+
     print_info() {
       echo -e '\''\033[1;35m'\''$@$'\''\033[0m'\'' # light purple
     }
