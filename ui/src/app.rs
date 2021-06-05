@@ -14,9 +14,9 @@ pub enum AppRoute {
 
 fn api_origin() -> String {
   let window_origin = super::origin();
-  if window_origin.find("localhost").is_some() {
+  if window_origin.find("localhost").is_some() || window_origin.find(".local.").is_some() {
     // default config for dev environment
-    "http://localhost:9090".to_string()
+    window_origin.replace("8080", "9090")
   } else {
     // using ingress via the same origin for qa/prod envs
     window_origin
@@ -81,18 +81,21 @@ impl Component for App {
   fn view(&self) -> Html {
     html! {
       <>
-      <div>
-        { format!("Welcome to Risk Balanced Portfolio!") }
+      <div class="w-full border-b border-b border-blue-200 text-center p-3">
+        <span class="text-xl">
+          { format!("Welcome to Risk Balanced Portfolio!") }
+        </span>
+
+        // <nav>
+        //   <div>
+        //     <ul>
+        //       // TODO use function component to render this
+        //       <li class=self.active_if_route(AppRoute::Main)><a href="#" onclick=self.change_route(AppRoute::Main)>{ "Main" }</a></li>
+        //     </ul>
+        //   </div>
+        // </nav>
       </div>
-      <nav>
-        <div class="nav-wrapper">
-          <ul class="left">
-            // TODO use function component to render this
-            <li class=self.active_if_route(AppRoute::Main)><a href="#" onclick=self.change_route(AppRoute::Main)>{ "Main" }</a></li>
-          </ul>
-        </div>
-      </nav>
-      <div class="container">
+      <div class="w-full md:w-2/5 mx-auto p-3">
         { self.render_route() }
       </div>
       </>

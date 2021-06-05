@@ -1,4 +1,4 @@
-import resolve from '@rollup/plugin-node-resolve';
+import node_resolve from '@rollup/plugin-node-resolve';
 
 export default {
   input: 'bundle.js',
@@ -6,5 +6,5 @@ export default {
     dir: 'pkg',
     format: 'iife'
   },
-  plugins: [resolve()]
+  plugins: [node_resolve()]
 };

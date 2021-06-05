@@ -97,13 +97,37 @@ impl yew::Component for Component {
   }
 
   fn view(&self) -> Html {
+    let input_container_classes = || {
+      let default_classes = vec!["relative h-10 input-component mt-5"];
+      let result = vec![
+        default_classes,
+        if self.picked_tickers.len() > 0 {
+          vec![]
+        } else {
+          vec!["empty"]
+        },
+      ]
+      .concat();
+      log::info!("Classes {:?}", result);
+      result
+    };
     html! {
       <>
-      <div>
-        <div>{"Pick you portfolio tickers"}</div>
-        <input onchange=self.link.callback(Msg::TickersInputChanged) value={self.picked_tickers.join(" ")} />
+      <div class={input_container_classes()}>
+        <input
+          type="text"
+          name="tickers"
+          class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm"
+          onchange=self.link.callback(Msg::TickersInputChanged)
+          value={self.picked_tickers.join(" ")}
+          autocomplete="off" autocorrect="off" autocapitalize="off"
+        />
+        <label for="email" class="absolute left-0 -top-2 transition-all px-2 transform -translate-y-2/4
+          text-xs text-blue-500">
+          {"Your portfolio"}
+        </label>
       </div>
-      <div>
+      <div class="py-2">
         {self.build_weights_results()}
       </div>
       </>
@@ -142,23 +166,23 @@ impl Component {
         <div>
           <span>{ticker}</span>
           <span>{" = "}</span>
-          <span>{weight}</span>
+          <span>{format!("{:.2}%", 100f64 * weight)}</span>
         </div>
       }
     };
 
     if self.get_weights_task.is_some() {
       html! {
-        <div>{"Calculating weights..."}</div>
+        <div class="text-gray-500">{"Calculating weights..."}</div>
       }
     } else if self.fetching_error.is_some() {
       html! {
-        <div>{"Sorry, failed to caculated weigts"}</div>
+        <div class="text-red-500">{"Sorry, failed to caculated weights"}</div>
       }
     } else {
       html! {
       <>
-        <div>{"Calculated porfolio weights"}</div>
+        <div class="text-gray-500">{"Calculated porfolio weights"}</div>
         { for self.fetched_tickers.iter().zip(self.fetched_weights.iter()).map(render_ticker_weight) }
       </>
       }

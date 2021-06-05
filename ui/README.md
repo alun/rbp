@@ -16,7 +16,13 @@ npm install -g yarn
 Node.js stuff
 
 ```sh
-yarn install
+yarn
+```
+
+### Build css
+
+```sh
+npx tailwindcss build styles.css -o pkg/styles.css
 ```
 
 ### Run

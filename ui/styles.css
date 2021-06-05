@@ -1,0 +1,18 @@
+.empty input:not(:focus) + label {
+  @apply top-1/2;
+  @apply text-base;
+}
+input:not(:focus) + label {
+  @apply text-gray-500;
+}
+input {
+  @apply border;
+}
+input:focus {
+  @apply outline-none;
+  @apply border-blue-500;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
