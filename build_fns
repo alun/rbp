@@ -61,13 +61,15 @@ build_image() {
 build_ui_source() {
   local APP=$1
   run_in_docker '
+    export NODE_ENV=production # allows tailwind CSS to purge result CSS from unnecessary classes
+
     print_info() {
       echo -e '\''\033[1;35m'\''$@$'\''\033[0m'\'' # light purple
     }
 
     cd "'${APP}'"
     print_info ^^ installing npm deps
-    yarn
+    yarn install --production=false --frozen-lockfile # allows yarn to install devDependencies
 
     print_info ^^ building css
     npx tailwindcss build styles.css -o pkg/styles.css

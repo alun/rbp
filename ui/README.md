@@ -19,6 +19,10 @@ Node.js stuff
 yarn
 ```
 
+If you set `NODE_ENV=productions` yarn won't install `devDependencies` which are the only dependencies for this project so far.
+
+You can workaround this problem with `yarn --production=false`.
+
 ### Build css
 
 ```sh

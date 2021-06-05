@@ -117,7 +117,7 @@ impl yew::Component for Component {
         <input
           type="text"
           name="tickers"
-          class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm"
+          class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border"
           onchange=self.link.callback(Msg::TickersInputChanged)
           value={self.picked_tickers.join(" ")}
           autocomplete="off" autocorrect="off" autocapitalize="off"
