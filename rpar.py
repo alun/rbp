@@ -126,3 +126,12 @@ def get_prices(yahoo_tickers, start_date, end_date):
         .asfreq('B')  # align time series to business days
         .ffill()      # forward fill missing (NaN) data
     )
+
+
+def find_tickers_with_missing_data(prices):
+    result = []
+    if prices.isnull().values.any():
+        for column in prices.columns:
+            if prices[column].isnull().values.any():
+                result.append(column)
+    return result

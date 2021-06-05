@@ -1,18 +1,21 @@
 mod actix_anyhow;
 
+use crate::actix_anyhow::AnyhowErrorWrapper;
 use actix_cors::Cors;
+use actix_web::error;
 use actix_web::{get, http, web::Json, App, HttpServer, Responder};
 use anyhow::anyhow;
 use listenfd::ListenFd;
 use pyo3::prelude::*;
+use pyo3::types::IntoPyDict;
+use pyo3::types::PyList;
 use serde_qs::actix::QsQuery;
-
-use crate::actix_anyhow::AnyhowErrorWrapper;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   dotenv::dotenv().ok();
   env_logger::init();
+  log::info!("Starting server");
 
   let mut listenfd = ListenFd::from_env();
 
@@ -53,18 +56,19 @@ async fn main() -> std::io::Result<()> {
 
 #[get("/service/v1/weights")]
 async fn get_weights(query: QsQuery<core::GetWeightsQuery>) -> actix_web::Result<impl Responder> {
-  let weights = Python::with_gil(|py| {
-    calc_weights(py, query.tickers.iter().map(String::as_str).collect()).map_err(|e| {
-      // We can't display Python exceptions via std::fmt::Display,
-      // so print the error here manually.
-      AnyhowErrorWrapper::from(anyhow!("error calculating weigths: {}", e))
-    })
+  let weights_result = Python::with_gil(|py| {
+    calc_weights(py, query.tickers.iter().map(String::as_str).collect())
+      .map_err(|e| AnyhowErrorWrapper::from(anyhow!("error calculating weigths: {}", e)))
   })?;
 
-  Ok(Json(weights))
+  match weights_result {
+    Ok(weights) => Ok(Json(weights)),
+    Err(anyhow_error) => Err(error::ErrorBadRequest(anyhow_error)),
+  }
 }
 
-fn calc_weights(py: Python, tickers: Vec<&str>) -> PyResult<Vec<f64>> {
+// TODO move to py_bridge
+fn calc_weights(py: Python, tickers: Vec<&str>) -> PyResult<anyhow::Result<Vec<f64>>> {
   let sys = py.import("sys")?;
   sys.get("path")?.call_method(
     "extend",
@@ -77,15 +81,31 @@ fn calc_weights(py: Python, tickers: Vec<&str>) -> PyResult<Vec<f64>> {
     None,
   )?;
 
+  // Default calculating of YTD date interval
   let datetime = py.import("datetime")?;
-  let start_date = datetime.call_method("datetime", (2018, 4, 17), None)?;
-  let end_date = datetime.call_method("datetime", (2021, 4, 14), None)?;
+  let today = datetime.getattr("date")?.call_method("today", (), None)?;
+  let current_year: u32 = today.getattr("year")?.extract()?;
+  let year_ago = today.call_method(
+    "replace",
+    (),
+    Some([("year", current_year - 1)].into_py_dict(py)),
+  )?;
 
   let rpar = py.import("rpar")?;
-  let prices = rpar.call_method("get_prices", (tickers, start_date, end_date), None)?;
-  let weights: Vec<f64> = rpar
-    .call_method("get_weights", (prices,), None)?
-    .extract()?;
+  let prices = rpar.call_method("get_prices", (tickers, year_ago, today), None)?;
 
-  Ok(weights)
+  let missing_data = rpar
+    .call_method("find_tickers_with_missing_data", (prices,), None)?
+    .downcast::<PyList>()?;
+
+  Ok(if missing_data.is_empty() {
+    let weights: Vec<f64> = rpar
+      .call_method("get_weights", (prices,), None)?
+      .extract()?;
+
+    Ok(weights)
+  } else {
+    let tickers: Vec<&str> = missing_data.extract()?;
+    Err(anyhow!("missing data for tickers {}", tickers.join(", ")))
+  })
 }
