@@ -14,9 +14,9 @@ pub enum AppRoute {
 
 fn api_origin() -> String {
   let window_origin = super::origin();
-  if window_origin.find("localhost").is_some() {
+  if window_origin.find("localhost").is_some() || window_origin.find(".local.").is_some() {
     // default config for dev environment
-    "http://localhost:9090".to_string()
+    window_origin.replace("8080", "9090")
   } else {
     // using ingress via the same origin for qa/prod envs
     window_origin
