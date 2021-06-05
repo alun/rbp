@@ -120,6 +120,7 @@ impl yew::Component for Component {
           class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm"
           onchange=self.link.callback(Msg::TickersInputChanged)
           value={self.picked_tickers.join(" ")}
+          autocomplete="off" autocorrect="off" autocapitalize="off"
         />
         <label for="email" class="absolute left-0 -top-2 transition-all px-2 transform -translate-y-2/4
           text-xs text-blue-500">
