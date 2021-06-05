@@ -69,7 +69,7 @@ build_ui_source() {
 
     cd "'${APP}'"
     print_info ^^ installing npm deps
-    yarn
+    yarn install --production=false --frozen-lockfile # allows yarn to install devDependencies
 
     print_info ^^ building css
     npx tailwindcss build styles.css -o pkg/styles.css
