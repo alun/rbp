@@ -1,17 +1,16 @@
+use super::ticker_input::Component as TickerInput;
 use crate::services::rpb::Service as RbpService;
 use anyhow::Result;
 use core::GetWeightsQuery;
 use std::ops::Deref;
-use yew::{
-  html, services::fetch::FetchTask, ChangeData, ComponentLink, Html, Properties, ShouldRender,
-};
+use yew::{html, services::fetch::FetchTask, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::ptr::Mrc;
 
 const DEFAULT_TICKERS: &[&str] = &["FB", "AAPL", "AMZN", "NFLX", "GOOG"];
 
 pub enum Msg {
   WeightsResultsLoaded(Result<Vec<f64>>),
-  TickersInputChanged(ChangeData),
+  TickerAdded(crate::services::yahoo::TickerInfo),
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -71,21 +70,14 @@ impl yew::Component for Component {
           }
         }
       }
-      Msg::TickersInputChanged(change_data) => match change_data {
-        ChangeData::Value(value) => {
-          let tickers: Vec<String> = value
-            .split(" ")
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-            .collect();
-          log::debug!("Changed tickers {:?}", &tickers);
-
-          self.picked_tickers = tickers.clone();
-          self.get_weigths(GetWeightsQuery { tickers })
+      Msg::TickerAdded(ticker_info) => {
+        if !self.picked_tickers.contains(&ticker_info.symbol) {
+          self.picked_tickers.push(ticker_info.symbol);
+          self.get_weigths(GetWeightsQuery {
+            tickers: self.picked_tickers.clone(),
+          })
         }
-        _ => {}
-      },
+      }
     }
     true
   }
@@ -112,12 +104,13 @@ impl yew::Component for Component {
     };
     html! {
       <>
+      <TickerInput on_ticker_added={self.link.callback(Msg::TickerAdded)}/>
       <div class={input_container_classes()}>
         <input
+          disabled=true
           type="text"
           name="tickers"
           class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border"
-          onchange=self.link.callback(Msg::TickersInputChanged)
           value={self.picked_tickers.join(" ")}
           autocomplete="off" autocorrect="off" autocapitalize="off"
         />
