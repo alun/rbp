@@ -10,7 +10,8 @@ use yew::{
   Callback,
 };
 
-pub mod rpb_service;
+pub mod rpb;
+pub mod yahoo;
 
 trait Service {
   fn get<'a, Out, QueryParams>(

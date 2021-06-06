@@ -1,4 +1,4 @@
-use crate::services::rpb_service::RbpService;
+use crate::services::rpb::Service as RbpService;
 use anyhow::Result;
 use core::GetWeightsQuery;
 use std::ops::Deref;
