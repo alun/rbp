@@ -1,5 +1,3 @@
-use core::GetWeightsQuery;
-
 use anyhow::{anyhow, Context, Result};
 use http::{request::Builder, Method};
 use serde::{de::DeserializeOwned, Serialize};
@@ -12,82 +10,66 @@ use yew::{
   Callback,
 };
 
-#[derive(PartialEq)]
-pub struct RbpService {
-  pub base: String,
-}
+pub mod rpb_service;
 
-impl RbpService {
-  pub fn get_weigths(
-    &self,
-    query: GetWeightsQuery,
-    callback: Callback<Result<Vec<f64>>>,
-  ) -> FetchTask {
-    self.get("weights", Some(&query), callback)
-  }
-
-  pub fn get<'a, OUT, QueryParams>(
+trait Service {
+  fn get<'a, Out, QueryParams>(
     &self,
     path: &str,
     query_params: Option<&QueryParams>,
-    callback: Callback<Result<OUT>>,
+    callback: Callback<Result<Out>>,
   ) -> FetchTask
   where
-    OUT: DeserializeOwned,
-    OUT: 'static,
+    Out: DeserializeOwned + 'static,
     QueryParams: Serialize,
   {
-    let full_path =
+    let uri =
       query_params.map(|params| format!("{}?{}", path, serde_qs::to_string(params).unwrap()));
     self.send(
       Method::GET,
       Nothing,
-      full_path.as_ref().map(String::as_str).unwrap_or(path),
+      uri.as_ref().map(String::as_str).unwrap_or(path),
       callback,
     )
   }
 
-  pub fn post<'a, IN, OUT>(
+  fn post<'a, In, Out>(
     &self,
     path: &str,
-    payload: &IN,
-    callback: Callback<Result<OUT>>,
+    payload: &In,
+    callback: Callback<Result<Out>>,
   ) -> FetchTask
   where
-    IN: Serialize,
-    OUT: DeserializeOwned,
-    OUT: 'static,
+    In: Serialize,
+    Out: DeserializeOwned + 'static,
   {
     self.send(Method::POST, Json(payload), path, callback)
   }
 
-  pub fn delete<'a, IN, OUT>(
+  fn delete<'a, In, Out>(
     &self,
     path: &str,
-    payload: &IN,
-    callback: Callback<Result<OUT>>,
+    payload: &In,
+    callback: Callback<Result<Out>>,
   ) -> FetchTask
   where
-    IN: Serialize,
-    OUT: DeserializeOwned,
-    OUT: 'static,
+    In: Serialize,
+    Out: DeserializeOwned + 'static,
   {
     self.send(Method::DELETE, Json(payload), path, callback)
   }
 
-  fn send<'a, IN, OUT>(
+  fn send<'a, In, Out>(
     &self,
     method: Method,
-    body: IN,
-    path: &str,
-    callback: Callback<Result<OUT>>,
+    body: In,
+    uri: &str,
+    callback: Callback<Result<Out>>,
   ) -> FetchTask
   where
-    IN: Into<Text>,
-    OUT: DeserializeOwned,
-    OUT: 'static,
+    In: Into<Text>,
+    Out: DeserializeOwned + 'static,
   {
-    let url = format!("{}/{}", self.base, path);
     let handler = move |response: Response<Text>| {
       let (meta, text) = response.into_parts();
       if meta.status.is_success() {
@@ -102,7 +84,7 @@ impl RbpService {
 
     let request = Builder::new()
       .method(method)
-      .uri(url.as_str())
+      .uri(uri)
       .header("content-type", "application/json;charset=UTF-8")
       .body(body)
       .unwrap();

@@ -1,8 +1,7 @@
+use crate::services::rpb_service::RbpService;
+use anyhow::Result;
 use core::GetWeightsQuery;
 use std::ops::Deref;
-
-use crate::services::RbpService;
-use anyhow::Result;
 use yew::{
   html, services::fetch::FetchTask, ChangeData, ComponentLink, Html, Properties, ShouldRender,
 };
