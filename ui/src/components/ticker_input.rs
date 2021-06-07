@@ -78,6 +78,7 @@ impl yew::Component for Component {
           x if x == super::Key::UP as u32 => self.move_selected_option(-1),
           x if x == super::Key::ENTER as u32 => {
             self.use_selected_option();
+            self.hide_options();
           }
           _ => prevent_default = false,
         }
@@ -86,14 +87,13 @@ impl yew::Component for Component {
         }
       }
       Msg::HideOptions => {
-        self.deffered_hide_task = None;
-        self.use_selected_option();
         self.hide_options();
       }
       Msg::FocusOut => {
-        if self.deffered_hide_task.is_none() {
-          self.hide_options();
-        }
+        self.deffered_hide_task = Some(TimeoutService::spawn(
+          Duration::from_millis(super::DEFAULT_DEFER_MS),
+          self.link.callback(|_| Msg::HideOptions),
+        ));
       }
       Msg::FocusIn => {
         if !self.value.is_empty() {
@@ -103,10 +103,8 @@ impl yew::Component for Component {
       Msg::SelectAndUseOption(index) => {
         self.selected_option = index as i32;
         log::debug!("Clicked option {}", self.selected_option);
-        self.deffered_hide_task = Some(TimeoutService::spawn(
-          Duration::from_millis(super::UI_DEFFERED_TIME),
-          self.link.callback(|_| Msg::HideOptions),
-        ));
+        self.use_selected_option();
+        self.hide_options();
       }
     }
     true
@@ -163,8 +161,8 @@ impl Component {
       }
       html! {
         <li class=classes
-            onmousedown=self.link.callback(move |_| Msg::SelectAndUseOption(index))
-            ontouchstart=self.link.callback(move |_| Msg::SelectAndUseOption(index))
+            ontouchstart=Callback::noop() // TODO shows visual click effect on touchscreen, do better
+            onclick=self.link.callback(move |_| Msg::SelectAndUseOption(index))
             >
             <span
             class="flex-grow">{&ticker_info.symbol}</span><span
@@ -203,6 +201,7 @@ impl Component {
   }
 
   fn hide_options(&mut self) {
+    self.deffered_hide_task = None;
     self.selected_option = -1;
     self.fetched_tickers.clear();
   }
