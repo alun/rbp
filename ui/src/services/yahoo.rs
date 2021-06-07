@@ -5,14 +5,14 @@ use yew::{services::fetch::FetchTask, Callback};
 const AUTO_COMPLETE_URL: &str = "https://cors.katlex.com/http://d.yimg.com/aq/autoc";
 
 #[derive(Serialize)]
-pub struct SearchParams {
+pub struct AutoCompleteQuery {
   query: String,
   lang: String,
 }
 
-impl From<&str> for SearchParams {
+impl From<&str> for AutoCompleteQuery {
   fn from(query: &str) -> Self {
-    SearchParams {
+    AutoCompleteQuery {
       query: query.to_string(),
       lang: "en-US".to_string(),
     }
@@ -35,9 +35,9 @@ pub struct Service {}
 impl super::Service for Service {}
 
 impl Service {
-  pub fn search(
+  pub fn autocomplete(
     &self,
-    query: SearchParams,
+    query: AutoCompleteQuery,
     callback: Callback<Result<Vec<TickerInfo>>>,
   ) -> FetchTask {
     super::Service::get(

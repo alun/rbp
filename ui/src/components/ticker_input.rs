@@ -1,16 +1,21 @@
+use std::time::Duration;
+
 use crate::services::yahoo::{self, TickerInfo};
 use anyhow::Result;
-use web_sys::{FocusEvent, KeyboardEvent};
+use web_sys::KeyboardEvent;
 use yew::{
-  html, services::fetch::FetchTask, Callback, ComponentLink, Html, InputData, Properties,
-  ShouldRender,
+  html,
+  services::{fetch::FetchTask, timeout::TimeoutTask, TimeoutService},
+  Callback, ComponentLink, Html, InputData, Properties, ShouldRender,
 };
 pub enum Msg {
   AutoCompleteResutlsLoaded(Result<Vec<TickerInfo>>),
   InputChaging(InputData),
   KeyDown(KeyboardEvent),
-  FocusOut(FocusEvent),
-  SelectOption(usize),
+  HideOptions,
+  FocusIn,
+  FocusOut,
+  SelectAndUseOption(usize),
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -22,10 +27,11 @@ pub struct Component {
   fetched_tickers: Vec<TickerInfo>,
   link: ComponentLink<Self>,
   props: Props,
-  query_auto_complete_task: Option<FetchTask>,
+  fetch_autocomlete_options_task: Option<FetchTask>,
   value: String,
   yahoo_service: yahoo::Service,
   selected_option: i32,
+  deffered_hide_task: Option<TimeoutTask>,
 }
 
 impl yew::Component for Component {
@@ -37,24 +43,22 @@ impl yew::Component for Component {
       fetched_tickers: vec![],
       link,
       props,
-      query_auto_complete_task: None,
+      fetch_autocomlete_options_task: None,
       value: "".to_string(),
+      // value: "FB".to_string(),
       yahoo_service: yahoo::Service {},
       selected_option: -1,
+      deffered_hide_task: None,
     };
 
-    _self.value = "FB".to_string();
-    _self.query_auto_complete_task = Some(_self.yahoo_service.search(
-      _self.value.as_str().into(),
-      _self.link.callback(Msg::AutoCompleteResutlsLoaded),
-    ));
+    // _self.fetch_autocomplete_options();
     _self
   }
 
   fn update(&mut self, msg: Self::Message) -> ShouldRender {
     match msg {
       Msg::AutoCompleteResutlsLoaded(Ok(new_fetched_tickers)) => {
-        self.query_auto_complete_task = None;
+        self.fetch_autocomlete_options_task = None;
         self.selected_option = -1;
         log::debug!("Auto complete options {:?}", &new_fetched_tickers);
         self.fetched_tickers = new_fetched_tickers;
@@ -63,10 +67,7 @@ impl yew::Component for Component {
       Msg::InputChaging(InputData { value }) => {
         log::debug!("Input changing {:?}", &value);
         self.value = value;
-        self.query_auto_complete_task = Some(self.yahoo_service.search(
-          self.value.as_str().into(),
-          self.link.callback(Msg::AutoCompleteResutlsLoaded),
-        ));
+        self.fetch_autocomplete_options();
       }
       Msg::KeyDown(keyboard_event) => {
         let mut prevent_default = true;
@@ -84,13 +85,28 @@ impl yew::Component for Component {
           keyboard_event.prevent_default();
         }
       }
-      Msg::FocusOut(_) => {
-        self.fetched_tickers = vec![];
-        self.selected_option = -1;
-      }
-      Msg::SelectOption(index) => {
-        self.selected_option = index as i32;
+      Msg::HideOptions => {
+        self.deffered_hide_task = None;
         self.use_selected_option();
+        self.hide_options();
+      }
+      Msg::FocusOut => {
+        if self.deffered_hide_task.is_none() {
+          self.hide_options();
+        }
+      }
+      Msg::FocusIn => {
+        if !self.value.is_empty() {
+          self.fetch_autocomplete_options();
+        }
+      }
+      Msg::SelectAndUseOption(index) => {
+        self.selected_option = index as i32;
+        log::debug!("Clicked option {}", self.selected_option);
+        self.deffered_hide_task = Some(TimeoutService::spawn(
+          Duration::from_millis(super::UI_DEFFERED_TIME),
+          self.link.callback(|_| Msg::HideOptions),
+        ));
       }
     }
     true
@@ -112,10 +128,10 @@ impl yew::Component for Component {
       <div class="relative">
         <div class={input_container_classes()}>
           <input type="text" name="tickers"
-            class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border"
-            oninput=self.link.callback(Msg::InputChaging) onkeydown=self.link.callback(Msg::KeyDown)
-            onblur=self.link.callback(Msg::FocusOut) autocomplete="off" autocorrect="off" autocapitalize="off"
-            value=self.value />
+            class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border" value=self.value
+            autocomplete="off" autocorrect="off" autocapitalize="off" onblur=self.link.callback(|_| Msg::FocusOut)
+            onfocus=self.link.callback(|_| Msg::FocusIn) oninput=self.link.callback(Msg::InputChaging)
+            onkeydown=self.link.callback(Msg::KeyDown) />
           <label for="email" class="absolute left-0 -top-2 transition-all px-2 transform -translate-y-2/4
             text-xs text-blue-500 pointer-events-none">
             {"Add ticker"}
@@ -130,14 +146,27 @@ impl yew::Component for Component {
 impl Component {
   fn auto_complete_options(&self) -> Html {
     let render_ticker_option = |(index, ticker_info): (usize, &TickerInfo)| {
-      let mut classes = vec!["px-2", "py-1", "mx-1", "flex", "flex-row", "cursor-pointer"];
+      let mut classes = vec![
+        "px-2",
+        "py-1",
+        "mx-1",
+        "flex",
+        "flex-row",
+        "cursor-pointer",
+        "hover:bg-blue-200",
+        "transition-colors",
+      ];
       if index as i32 == self.selected_option {
         classes.push("bg-blue-200");
       } else {
         classes.push("bg-blue-50");
       }
       html! {
-        <li class=classes onclick=self.link.callback(move |_| Msg::SelectOption(index))><span
+        <li class=classes
+            onmousedown=self.link.callback(move |_| Msg::SelectAndUseOption(index))
+            ontouchstart=self.link.callback(move |_| Msg::SelectAndUseOption(index))
+            >
+            <span
             class="flex-grow">{&ticker_info.symbol}</span><span
             class="text-gray-500 text-xs pt-1">{&ticker_info.name}</span></li>
       }
@@ -168,9 +197,20 @@ impl Component {
   fn use_selected_option(&mut self) {
     if self.selected_option >= 0 {
       let ticker_info = self.fetched_tickers.remove(self.selected_option as usize);
-      self.fetched_tickers = vec![];
       self.value = "".to_string();
       self.props.on_ticker_added.emit(ticker_info);
     }
+  }
+
+  fn hide_options(&mut self) {
+    self.selected_option = -1;
+    self.fetched_tickers.clear();
+  }
+
+  fn fetch_autocomplete_options(&mut self) {
+    self.fetch_autocomlete_options_task = Some(self.yahoo_service.autocomplete(
+      self.value.as_str().into(),
+      self.link.callback(Msg::AutoCompleteResutlsLoaded),
+    ));
   }
 }

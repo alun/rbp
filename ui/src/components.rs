@@ -15,3 +15,5 @@ enum Key {
   DOWN = 40,
   ENTER = 13,
 }
+
+const UI_DEFFERED_TIME: u64 = 200;
