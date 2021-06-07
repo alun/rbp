@@ -16,4 +16,4 @@ enum Key {
   ENTER = 13,
 }
 
-const UI_DEFFERED_TIME: u64 = 200;
+const DEFAULT_DEFER_MS: u64 = 200;

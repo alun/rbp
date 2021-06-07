@@ -11,6 +11,7 @@ const DEFAULT_TICKERS: &[&str] = &["FB", "AAPL", "AMZN", "NFLX", "GOOG"];
 pub enum Msg {
   WeightsResultsLoaded(Result<Vec<f64>>),
   TickerAdded(crate::services::yahoo::TickerInfo),
+  ClearPortfolio,
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -78,6 +79,7 @@ impl yew::Component for Component {
           })
         }
       }
+      Msg::ClearPortfolio => self.picked_tickers.clear(),
     }
     true
   }
@@ -118,6 +120,12 @@ impl yew::Component for Component {
           text-xs text-blue-500">
           {"Your portfolio"}
         </label>
+      </div>
+      <div class="py-2">
+        <button class="rounded-lg bg-yellow-300 filter drop-shadow-md p-2 active:bg-yellow-600 focus:outline-none"
+          onclick=self.link.callback(|_| Msg::ClearPortfolio)>
+          <img class="w-6 h-6 pointer-events-none" src="assets/clean.svg"/>
+        </button>
       </div>
       <div class="py-2">
         {self.build_weights_results()}
@@ -163,7 +171,11 @@ impl Component {
       }
     };
 
-    if self.get_weights_task.is_some() {
+    if self.picked_tickers.is_empty() {
+      html! {
+        <div class="text-gray-500">{"Add some tickers above"}</div>
+      }
+    } else if self.get_weights_task.is_some() {
       html! {
         <div class="text-gray-500">{"Calculating weights..."}</div>
       }

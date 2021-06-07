@@ -160,13 +160,10 @@ impl Component {
         classes.push("bg-blue-50");
       }
       html! {
-        <li class=classes
-            ontouchstart=Callback::noop() // TODO shows visual click effect on touchscreen, do better
-            onclick=self.link.callback(move |_| Msg::SelectAndUseOption(index))
-            >
-            <span
-            class="flex-grow">{&ticker_info.symbol}</span><span
-            class="text-gray-500 text-xs pt-1">{&ticker_info.name}</span></li>
+        <li class=classes ontouchstart=Callback::noop() // TODO shows visual click effect on touchscreen, do better
+          onclick=self.link.callback(move |_| Msg::SelectAndUseOption(index))>
+          <span class="flex-grow pr-2">{&ticker_info.symbol}</span><span
+            class="text-gray-500 text-xs pt-1 whitespace-nowrap overflow-hidden">{&ticker_info.name}</span></li>
       }
     };
     if !self.fetched_tickers.is_empty() {
@@ -182,14 +179,14 @@ impl Component {
 
   fn move_selected_option(&mut self, delta: i32) {
     self.selected_option += delta;
-    if self.fetched_tickers.len() == 0 {
+    if self.fetched_tickers.len() == 0 || self.selected_option < 0 {
       self.selected_option = -1;
-    } else {
+    } else if self.selected_option >= 0 {
       self.selected_option %= self.fetched_tickers.len() as i32;
+      self.value = self.fetched_tickers[self.selected_option as usize]
+        .symbol
+        .clone();
     }
-    self.value = self.fetched_tickers[self.selected_option as usize]
-      .symbol
-      .clone();
   }
 
   fn use_selected_option(&mut self) {

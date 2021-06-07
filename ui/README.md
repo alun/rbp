@@ -7,7 +7,7 @@ Risk balanced portfolio Rust/WebAssembly UI
 ### Pre-install
 
 ```sh
-cargo install http-server
+cargo install simple-http-server
 npm install -g yarn
 ```
 
@@ -40,7 +40,7 @@ cargo watch -s 'wasm-pack build --target web && rollup -c'
 Serve
 
 ```sh
-http-server
+simple-http-server -p 8080 -i --nocache --try-file index.html
 ```
 
 Go to http://localhost:8080/
