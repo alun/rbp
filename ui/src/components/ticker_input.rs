@@ -45,13 +45,11 @@ impl yew::Component for Component {
       props,
       fetch_autocomlete_options_task: None,
       value: "".to_string(),
-      // value: "FB".to_string(),
       yahoo_service: yahoo::Service {},
       selected_option: -1,
       deffered_hide_task: None,
     };
 
-    // _self.fetch_autocomplete_options();
     _self
   }
 
