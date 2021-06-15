@@ -56,12 +56,6 @@ impl Component for App {
       route_service,
     };
 
-    // let yahoo = services::yahoo::Service {};
-    // instance.task = Some(yahoo.search(
-    //   "Y".into(),
-    //   Callback::once(|result| log::info!("{:?}", result)),
-    // ));
-
     log::info!("App created");
     instance
   }
