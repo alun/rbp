@@ -41,7 +41,7 @@ fn remove_item(key: &str) {
 }
 
 #[wasm_bindgen]
-pub async fn run_app() -> Result<(), JsValue> {
+pub fn run_app() -> Result<(), JsValue> {
   let log_level = match get_item(LOG_LEVEL_KEY).as_ref().map(String::as_str) {
     Some("debug") => log::Level::Debug,
     _ => log::Level::Info,

@@ -1,8 +1,6 @@
 use super::components;
-use super::services;
-use services::RbpService;
-use yew::prelude::*;
-use yew::virtual_dom::VNode;
+use super::services::rpb::Service as RbpService;
+use yew::{macros::html, prelude::*, services::fetch::FetchTask, virtual_dom::VNode};
 use yew_router::{prelude::*, Switch};
 use yewtil::ptr::Mrc;
 
@@ -49,7 +47,7 @@ impl Component for App {
     let route = route_service.get_route();
     route_service.register_callback(link.callback(Msg::RouteChanged));
 
-    let instance = Self {
+    let mut instance = Self {
       rbp_service: Mrc::new(RbpService {
         base: format!("{}/service/v1", api_origin()).to_owned(),
       }),
@@ -57,6 +55,7 @@ impl Component for App {
       route,
       route_service,
     };
+
     log::info!("App created");
     instance
   }

@@ -90,6 +90,7 @@ build_ui_source() {
     mkdir -p ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
 
     cp index.html ${CARGO_TARGET_DIR}/release/"'${APP}'"
+    cp -R assets ${CARGO_TARGET_DIR}/release/"'${APP}'"
     cp pkg/bundle.js ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp pkg/styles.css ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg
     cp pkg/"'${APP}'"_bg.wasm ${CARGO_TARGET_DIR}/release/"'${APP}'"/pkg

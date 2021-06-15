@@ -1,18 +1,17 @@
+use super::ticker_input::Component as TickerInput;
+use crate::services::rpb::Service as RbpService;
+use anyhow::Result;
 use core::GetWeightsQuery;
 use std::ops::Deref;
-
-use crate::services::RbpService;
-use anyhow::Result;
-use yew::{
-  html, services::fetch::FetchTask, ChangeData, ComponentLink, Html, Properties, ShouldRender,
-};
+use yew::{html, services::fetch::FetchTask, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::ptr::Mrc;
 
 const DEFAULT_TICKERS: &[&str] = &["FB", "AAPL", "AMZN", "NFLX", "GOOG"];
 
 pub enum Msg {
   WeightsResultsLoaded(Result<Vec<f64>>),
-  TickersInputChanged(ChangeData),
+  TickerAdded(crate::services::yahoo::TickerInfo),
+  ClearPortfolio,
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -72,21 +71,15 @@ impl yew::Component for Component {
           }
         }
       }
-      Msg::TickersInputChanged(change_data) => match change_data {
-        ChangeData::Value(value) => {
-          let tickers: Vec<String> = value
-            .split(" ")
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-            .collect();
-          log::debug!("Changed tickers {:?}", &tickers);
-
-          self.picked_tickers = tickers.clone();
-          self.get_weigths(GetWeightsQuery { tickers })
+      Msg::TickerAdded(ticker_info) => {
+        if !self.picked_tickers.contains(&ticker_info.symbol) {
+          self.picked_tickers.push(ticker_info.symbol);
+          self.get_weigths(GetWeightsQuery {
+            tickers: self.picked_tickers.clone(),
+          })
         }
-        _ => {}
-      },
+      }
+      Msg::ClearPortfolio => self.picked_tickers.clear(),
     }
     true
   }
@@ -113,12 +106,13 @@ impl yew::Component for Component {
     };
     html! {
       <>
+      <TickerInput on_ticker_added={self.link.callback(Msg::TickerAdded)}/>
       <div class={input_container_classes()}>
         <input
+          disabled=true
           type="text"
           name="tickers"
           class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border"
-          onchange=self.link.callback(Msg::TickersInputChanged)
           value={self.picked_tickers.join(" ")}
           autocomplete="off" autocorrect="off" autocapitalize="off"
         />
@@ -126,6 +120,12 @@ impl yew::Component for Component {
           text-xs text-blue-500">
           {"Your portfolio"}
         </label>
+      </div>
+      <div class="py-2">
+        <button class="rounded-lg bg-yellow-300 filter drop-shadow-md p-2 active:bg-yellow-600 focus:outline-none"
+          onclick=self.link.callback(|_| Msg::ClearPortfolio)>
+          <img class="w-6 h-6 pointer-events-none" src="assets/clean.svg"/>
+        </button>
       </div>
       <div class="py-2">
         {self.build_weights_results()}
@@ -171,7 +171,11 @@ impl Component {
       }
     };
 
-    if self.get_weights_task.is_some() {
+    if self.picked_tickers.is_empty() {
+      html! {
+        <div class="text-gray-500">{"Add some tickers above"}</div>
+      }
+    } else if self.get_weights_task.is_some() {
       html! {
         <div class="text-gray-500">{"Calculating weights..."}</div>
       }
