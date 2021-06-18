@@ -1,12 +1,13 @@
 use super::ticker_input::Component as TickerInput;
 use crate::services::rpb::Service as RbpService;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use core::GetWeightsQuery;
 use std::ops::Deref;
 use yew::{html, services::fetch::FetchTask, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::ptr::Mrc;
 
 const DEFAULT_TICKERS: &[&str] = &["FB", "AAPL", "AMZN", "NFLX", "GOOG"];
+const PORTFOLIO_STORAGE_KEY: &str = "rbp.katlex.com.portfolio";
 
 pub enum Msg {
   WeightsResultsLoaded(Result<Vec<f64>>),
@@ -34,23 +35,33 @@ impl yew::Component for Component {
   type Properties = Props;
 
   fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-    let default_tickers: Vec<String> = DEFAULT_TICKERS
-      .iter()
-      .map(Deref::deref)
-      .map(str::to_string)
-      .collect();
+    let tickers = if let Ok(portfolio) = crate::get_item(PORTFOLIO_STORAGE_KEY)
+      .ok_or_else(|| anyhow!("No stored portfolio"))
+      .and_then(|portfolio_json| {
+        serde_json::from_str::<'_, Vec<String>>(&portfolio_json)
+          .map_err(|_| anyhow!("Can't parse porfolio"))
+      }) {
+      portfolio
+    } else {
+      DEFAULT_TICKERS
+        .iter()
+        .map(Deref::deref)
+        .map(str::to_string)
+        .collect()
+    };
+
     let mut instance = Self {
       get_weights_task: None,
       link,
       props,
-      picked_tickers: default_tickers.clone(),
+      picked_tickers: tickers.clone(),
       fetched_tickers: vec![],
       fetched_weights: vec![],
       fetching_error: None,
     };
-    instance.get_weigths(GetWeightsQuery {
-      tickers: default_tickers,
-    });
+    if !tickers.is_empty() {
+      instance.get_weigths(GetWeightsQuery { tickers });
+    }
     log::debug!("Weigths calculator component created");
 
     instance
@@ -64,6 +75,10 @@ impl yew::Component for Component {
           Ok(weights) => {
             self.fetching_error = None;
             self.fetched_tickers = self.picked_tickers.clone();
+            crate::set_item(
+              PORTFOLIO_STORAGE_KEY,
+              &serde_json::to_string(&self.picked_tickers).unwrap(),
+            );
             self.fetched_weights = weights;
           }
           Err(_) => {
@@ -79,7 +94,13 @@ impl yew::Component for Component {
           })
         }
       }
-      Msg::ClearPortfolio => self.picked_tickers.clear(),
+      Msg::ClearPortfolio => {
+        self.picked_tickers.clear();
+        crate::set_item(
+          PORTFOLIO_STORAGE_KEY,
+          &serde_json::to_string(&self.picked_tickers).unwrap(),
+        );
+      }
     }
     true
   }
