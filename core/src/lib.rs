@@ -1,8 +1,5 @@
-use serde::Deserialize;
-use serde::Serialize;
-
-#[cfg_attr(feature = "client", derive(Serialize))]
-#[cfg_attr(feature = "server", derive(Deserialize))]
+#[cfg_attr(feature = "client", derive(serde::Serialize))]
+#[cfg_attr(feature = "server", derive(serde::Deserialize))]
 pub struct GetWeightsQuery {
   pub tickers: Vec<String>,
 }
