@@ -1,17 +1,58 @@
 use super::ticker_input::Component as TickerInput;
 use crate::services::rpb::Service as RbpService;
+use crate::services::yahoo::TickerInfo;
 use anyhow::{anyhow, Result};
 use core::GetWeightsQuery;
-use std::ops::Deref;
+use once_cell::sync::Lazy;
+use serde_json::json;
 use yew::{html, services::fetch::FetchTask, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::ptr::Mrc;
 
-const DEFAULT_TICKERS: &[&str] = &["FB", "AAPL", "AMZN", "NFLX", "GOOG"];
-const PORTFOLIO_STORAGE_KEY: &str = "rbp.katlex.com.portfolio";
+// TODO should this be constructed direcly in Rust?
+static DEFAULT_TICKERS: Lazy<Vec<TickerInfo>> = Lazy::new(|| {
+  serde_json::from_value(json!([
+    {
+      "symbol": "FB",
+      "name": "Facebook, Inc.",
+      "exch": "NGM",
+      "exchDisp": "NASDAQ",
+      "typeDisp": "Equity"
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "exch": "NAS",
+      "exchDisp": "NASDAQ",
+      "typeDisp": "Equity"
+    },
+    {
+      "symbol": "AMZN",
+      "name": "Amazon.com, Inc.",
+      "exch": "NMS",
+      "exchDisp": "NASDAQ",
+      "typeDisp": "Equity"
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix, Inc.",
+      "exch": "NMS",
+      "exchDisp": "NASDAQ",
+      "typeDisp": "Equity"
+    },
+    {
+      "symbol": "GOOG",
+      "name": "Alphabet Inc.",
+      "exch": "NGM",
+      "exchDisp": "NASDAQ",
+      "typeDisp": "Equity"
+    }
+  ]))
+  .unwrap()
+});
 
 pub enum Msg {
   WeightsResultsLoaded(Result<Vec<f64>>),
-  TickerAdded(crate::services::yahoo::TickerInfo),
+  TickerAdded(TickerInfo),
   ClearPortfolio,
 }
 
@@ -23,11 +64,35 @@ pub struct Props {
 pub struct Component {
   get_weights_task: Option<FetchTask>,
   link: ComponentLink<Self>,
-  fetched_tickers: Vec<String>,
-  picked_tickers: Vec<String>,
+  fetched_tickers: Vec<TickerInfo>,
+  picked_tickers: Vec<TickerInfo>,
   fetched_weights: Vec<f64>,
   fetching_error: Option<()>,
   props: Props,
+}
+
+mod portfolio_dao {
+  use crate::services::yahoo::TickerInfo;
+  use anyhow::{anyhow, Result};
+
+  const PORTFOLIO_STORAGE_KEY: &str = "rbp.katlex.com.portfolio";
+
+  fn parse_stored_portfolio(json: String) -> Result<Vec<TickerInfo>> {
+    serde_json::from_str(&json).map_err(|_| anyhow!("Can't parse porfolio"))
+  }
+
+  pub fn load() -> Result<Vec<TickerInfo>> {
+    crate::get_item(PORTFOLIO_STORAGE_KEY)
+      .ok_or_else(|| anyhow!("No stored portfolio"))
+      .and_then(parse_stored_portfolio)
+  }
+
+  pub fn save(portfolio: &Vec<TickerInfo>) {
+    crate::set_item(
+      PORTFOLIO_STORAGE_KEY,
+      &serde_json::to_string(portfolio).unwrap(),
+    );
+  }
 }
 
 impl yew::Component for Component {
@@ -35,20 +100,7 @@ impl yew::Component for Component {
   type Properties = Props;
 
   fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-    let tickers = if let Ok(portfolio) = crate::get_item(PORTFOLIO_STORAGE_KEY)
-      .ok_or_else(|| anyhow!("No stored portfolio"))
-      .and_then(|portfolio_json| {
-        serde_json::from_str::<'_, Vec<String>>(&portfolio_json)
-          .map_err(|_| anyhow!("Can't parse porfolio"))
-      }) {
-      portfolio
-    } else {
-      DEFAULT_TICKERS
-        .iter()
-        .map(Deref::deref)
-        .map(str::to_string)
-        .collect()
-    };
+    let tickers = portfolio_dao::load().unwrap_or_else(|_| DEFAULT_TICKERS.clone());
 
     let mut instance = Self {
       get_weights_task: None,
@@ -60,7 +112,7 @@ impl yew::Component for Component {
       fetching_error: None,
     };
     if !tickers.is_empty() {
-      instance.get_weigths(GetWeightsQuery { tickers });
+      instance.get_weigths();
     }
     log::debug!("Weigths calculator component created");
 
@@ -75,11 +127,8 @@ impl yew::Component for Component {
           Ok(weights) => {
             self.fetching_error = None;
             self.fetched_tickers = self.picked_tickers.clone();
-            crate::set_item(
-              PORTFOLIO_STORAGE_KEY,
-              &serde_json::to_string(&self.picked_tickers).unwrap(),
-            );
             self.fetched_weights = weights;
+            portfolio_dao::save(&self.picked_tickers);
           }
           Err(_) => {
             self.fetching_error = Some(());
@@ -87,19 +136,14 @@ impl yew::Component for Component {
         }
       }
       Msg::TickerAdded(ticker_info) => {
-        if !self.picked_tickers.contains(&ticker_info.symbol) {
-          self.picked_tickers.push(ticker_info.symbol);
-          self.get_weigths(GetWeightsQuery {
-            tickers: self.picked_tickers.clone(),
-          })
+        if !self.picked_tickers.contains(&ticker_info) {
+          self.picked_tickers.push(ticker_info.clone());
+          self.get_weigths();
         }
       }
       Msg::ClearPortfolio => {
         self.picked_tickers.clear();
-        crate::set_item(
-          PORTFOLIO_STORAGE_KEY,
-          &serde_json::to_string(&self.picked_tickers).unwrap(),
-        );
+        portfolio_dao::save(&self.picked_tickers);
       }
     }
     true
@@ -134,7 +178,7 @@ impl yew::Component for Component {
           type="text"
           name="tickers"
           class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border"
-          value={self.picked_tickers.join(" ")}
+          value={self.picked_tickers.iter().map(|ticker_info| ticker_info.symbol.to_string()).collect::<Vec<String>>().join(" ")}
           autocomplete="off" autocorrect="off" autocapitalize="off"
         />
         <label for="email" class="absolute left-0 -top-2 transition-all px-2 transform -translate-y-2/4
@@ -156,22 +200,16 @@ impl yew::Component for Component {
   }
 }
 
-struct TickerWeight {
-  ticker: String,
-  weight: f64,
-}
-
 impl Component {
-  // TODO can this be generated by macro?
-  fn get_weigths(&mut self, query: GetWeightsQuery) {
-    log::debug!(
-      "Getting weights for {}",
-      serde_json::to_string(&query).unwrap()
-    );
-    if self.get_weights_task.is_some() {
-      // TODO is this required to drop active task?
-      self.get_weights_task.take();
-    }
+  // TODO can this be generated with a macro?
+  fn get_weigths(&mut self) {
+    let query = GetWeightsQuery {
+      tickers: self
+        .picked_tickers
+        .iter()
+        .map(|ticker_info| ticker_info.symbol.to_string())
+        .collect(),
+    };
     self.get_weights_task = Some(
       self
         .props
@@ -182,10 +220,10 @@ impl Component {
   }
 
   fn build_weights_results(&self) -> Html {
-    let render_ticker_weight = |(ticker, weight): (&String, &f64)| {
+    let render_ticker_weight = |(ticker_info, weight): (&TickerInfo, &f64)| {
       html! {
         <div>
-          <span>{ticker}</span>
+          <span>{ticker_info.symbol.as_str()}</span>
           <span>{" = "}</span>
           <span>{format!("{:.2}%", 100f64 * weight)}</span>
         </div>
