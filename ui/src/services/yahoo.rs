@@ -19,7 +19,7 @@ impl From<&str> for AutoCompleteQuery {
   }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct TickerInfo {
   pub symbol: String,

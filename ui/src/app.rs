@@ -1,6 +1,6 @@
 use super::components;
 use super::services::rpb::Service as RbpService;
-use yew::{macros::html, prelude::*, services::fetch::FetchTask, virtual_dom::VNode};
+use yew::{macros::html, prelude::*, virtual_dom::VNode};
 use yew_router::{prelude::*, Switch};
 use yewtil::ptr::Mrc;
 
