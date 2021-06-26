@@ -1,0 +1,12 @@
+#!/bin/sh
+
+export ALLOWED_ORIGIN=http://rbp.local.katlex.com:8080 \
+  RUST_LOG=info \
+  LD_LIBRARY_PATH=/opt/anaconda3/lib
+
+cargo run --bin service &
+
+pushd ui
+simple-http-server -p 8080 -i --nocache --try-file index.html &
+cargo watch -s 'wasm-pack build --target web && rollup -c' &
+popd

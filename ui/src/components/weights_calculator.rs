@@ -7,7 +7,6 @@ use once_cell::sync::Lazy;
 use serde_json::json;
 use yew::services::Task;
 use yew::virtual_dom::{VList, VNode};
-use yew::Callback;
 use yew::{html, services::fetch::FetchTask, ComponentLink, Html, Properties, ShouldRender};
 use yewtil::ptr::Mrc;
 
