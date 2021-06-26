@@ -104,7 +104,7 @@ impl Component for App {
           { "Made with ❤ in Dublin, Ireland 🍀" }
         </span>
         <span class="text-xs text-gray-300">
-          { format!("Version: {}", VERSION) }
+          { format!(" Version: {}", VERSION) }
         </span>
       </div>
       </>
