@@ -60,6 +60,7 @@ build_image() {
 
 build_ui_source() {
   local APP=$1
+  echo $COMMIT_BASED_VERSION >ui/version.txt
   run_in_docker '
     export NODE_ENV=production # allows tailwind CSS to purge result CSS from unnecessary classes
 

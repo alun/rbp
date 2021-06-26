@@ -4,6 +4,8 @@ use yew::{macros::html, prelude::*, virtual_dom::VNode};
 use yew_router::{prelude::*, Switch};
 use yewtil::ptr::Mrc;
 
+const VERSION: &'static str = std::include_str!("../version.txt");
+
 #[derive(Switch, Clone, PartialEq)]
 pub enum AppRoute {
   #[to = "/"]
@@ -94,8 +96,16 @@ impl Component for App {
         //   </div>
         // </nav>
       </div>
-      <div class="w-full md:w-2/5 mx-auto p-3">
+      <div class="flex-grow w-full md:w-2/5 mx-auto p-3">
         { self.render_route() }
+      </div>
+      <div class="w-full md:w-2/5 mx-auto p-3 text-center">
+        <span class="text-xs text-gray-400">
+          { "Made with ❤ in Dublin, Ireland 🍀" }
+        </span>
+        <span class="text-xs text-gray-300">
+          { format!("Version: {}", VERSION) }
+        </span>
       </div>
       </>
     }
