@@ -2,7 +2,7 @@ FROM debian:bullseye-slim
 
 RUN apt update &&\
   apt install -y libpython3.9 pip &&\
-  pip install pandas pandas_datareader scipy 
+  pip install pandas numpy datetime scipy pandas_datareader yfinance
 
 COPY release/service /usr/local/bin/service
 COPY rpar.py /usr/local/bin

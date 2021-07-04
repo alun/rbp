@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import numpy as np
 import pandas as pd
 import pandas_datareader.data as web
-import numpy as np
-import datetime
+import yfinance
 from scipy.optimize import minimize
 
+yfinance.pdr_override()
 TOLERANCE = 1e-10
 
 
@@ -118,7 +119,7 @@ def get_weights(prices):
 
 def get_prices(yahoo_tickers, start_date, end_date):
     return (
-        web.DataReader(yahoo_tickers, 'yahoo',
+        web.DataReader(yahoo_tickers,
                        start_date,
                        end_date
                        )
