@@ -53,7 +53,7 @@ impl Component for App {
         </span>
       </div>
       <super::components::ui_router::Component rbp_service=Mrc::clone(&self.rbp_service)/>
-      <div class="w-full md:w-2/5 mx-auto p-3 text-center">
+      <div class="w-full md:w-2/5 mx-auto px-3 text-center">
         <span class="text-xs text-gray-400">
           { "Made with ❤ in Dublin, Ireland 🍀" }
         </span>
