@@ -4,6 +4,7 @@ use yew::{
 };
 
 pub mod ticker_input;
+pub mod ui_router;
 pub mod weights_calculator;
 
 fn empty() -> Html {

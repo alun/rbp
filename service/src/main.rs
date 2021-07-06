@@ -11,6 +11,22 @@ use pyo3::types::IntoPyDict;
 use pyo3::types::PyList;
 use serde_qs::actix::QsQuery;
 
+// MAGN.ME FIVE.ME MTSS.ME OGKB.ME SNGSP.ME MRKP.ME
+// MAGN.ME = 11.23%
+// FIVE.ME = 13.60%
+// MTSS.ME = 22.59%
+// OGKB.ME = 12.34%
+// SNGSP.ME = 24.70%
+// MRKP.ME = 15.55%
+
+//2021-06-15
+// MAGN.ME = 11.25%
+// FIVE.ME = 13.65%
+// MTSS.ME = 22.39%
+// OGKB.ME = 12.43%
+// SNGSP.ME = 24.92%
+// MRKP.ME = 15.36%
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   dotenv::dotenv().ok();
