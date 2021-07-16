@@ -34,11 +34,11 @@ fn get_item(key: &str) -> Option<String> {
   }
 }
 
-fn remove_item(key: &str) {
-  if let Some(storage) = window().local_storage().expect("Local storage is missing!") {
-    storage.remove_item(key).expect("Can't delete value");
-  }
-}
+// fn remove_item(key: &str) {
+//   if let Some(storage) = window().local_storage().expect("Local storage is missing!") {
+//     storage.remove_item(key).expect("Can't delete value");
+//   }
+// }
 
 #[wasm_bindgen]
 pub fn run_app() -> Result<(), JsValue> {

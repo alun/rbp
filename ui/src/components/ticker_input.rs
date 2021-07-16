@@ -62,7 +62,7 @@ impl yew::Component for Component {
         self.fetched_tickers = new_fetched_tickers;
       }
       Msg::AutoCompleteResutlsLoaded(_) => {}
-      Msg::InputChaging(InputData { value }) => {
+      Msg::InputChaging(InputData { value, .. }) => {
         log::debug!("Input changing {:?}", &value);
         self.value = value;
         self.fetch_autocomplete_options();
@@ -124,7 +124,7 @@ impl yew::Component for Component {
       <div class="relative">
         <div class={input_container_classes()}>
           <input type="text" name="tickers"
-            class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border" value=self.value
+            class="h-full w-full border-gray-300 px-2 transition-all border-blue rounded-sm border" value=self.value.clone()
             autocomplete="off" autocorrect="off" autocapitalize="off" onblur=self.link.callback(|_| Msg::FocusOut)
             onfocus=self.link.callback(|_| Msg::FocusIn) oninput=self.link.callback(Msg::InputChaging)
             onkeydown=self.link.callback(Msg::KeyDown) />
