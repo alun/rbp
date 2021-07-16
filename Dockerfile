@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt update &&\
   apt install -y libpython3.9 pip &&\
