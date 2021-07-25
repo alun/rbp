@@ -118,16 +118,24 @@ def get_weights(prices):
 
 
 def get_prices(yahoo_tickers, start_date, end_date):
-    return (
-        web.DataReader(yahoo_tickers,
+  prices = (web.DataReader(yahoo_tickers,
                        start_date,
                        end_date
                        )
-        .loc[:, 'Adj Close']
-        .asfreq('B')  # align time series to business days
-        .ffill()      # forward fill missing (NaN) data
-    )
+    .loc[:, 'Adj Close']
+    .asfreq('B')  # align time series to business days
+    .ffill()      # forward fill missing (NaN) data
+  )
 
+  # fix some of yfinance price loading results caveats
+  if len(yahoo_tickers) > 1:
+    values = {}
+    for ticker in yahoo_tickers:
+      values[ticker] = prices[ticker].values
+
+    return pd.DataFrame(values, index=prices.index)
+  else:
+    return pd.DataFrame({yahoo_tickers[0]: prices.values}, index=prices.index)
 
 def find_tickers_with_missing_data(prices):
     result = []
