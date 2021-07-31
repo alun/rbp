@@ -1,6 +1,5 @@
 use super::ticker_input::Component as TickerInput;
-use crate::services::rpb::Service as RbpService;
-use crate::services::yahoo::TickerInfo;
+use crate::services::rpb::{Service as RbpService, TickerInfo};
 use anyhow::Result;
 use core::GetWeightsQuery;
 use once_cell::sync::Lazy;
@@ -77,7 +76,7 @@ pub struct Component {
 }
 
 mod portfolio_dao {
-  use crate::services::yahoo::TickerInfo;
+  use crate::services::rpb::TickerInfo;
   use anyhow::{anyhow, Result};
 
   const PORTFOLIO_STORAGE_KEY: &str = "rbp.katlex.com.portfolio";
@@ -169,7 +168,7 @@ impl yew::Component for Component {
   fn view(&self) -> Html {
     html! {
       <>
-      <TickerInput on_ticker_added={self.link.callback(Msg::AddTicker)}/>
+      <TickerInput on_ticker_added={self.link.callback(Msg::AddTicker)} rbp_service={Mrc::clone(&self.props.rbp_service)}/>
       {self.render_portfolio()}
       <div class="py-2">
         {self.render_selected_ticker_info()}

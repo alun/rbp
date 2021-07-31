@@ -1,13 +1,15 @@
-use std::time::Duration;
-
-use crate::services::yahoo::{self, TickerInfo};
+use crate::services::rpb::{Service as RbpService, TickerInfo};
 use anyhow::Result;
+use core::SearchQuery;
+use std::time::Duration;
 use web_sys::KeyboardEvent;
 use yew::{
   html,
   services::{fetch::FetchTask, timeout::TimeoutTask, TimeoutService},
   Callback, ComponentLink, Html, InputData, Properties, ShouldRender,
 };
+use yewtil::ptr::Mrc;
+
 pub enum Msg {
   AutoCompleteResutlsLoaded(Result<Vec<TickerInfo>>),
   InputChaging(InputData),
@@ -21,6 +23,7 @@ pub enum Msg {
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
   pub on_ticker_added: Callback<TickerInfo>,
+  pub rbp_service: Mrc<RbpService>,
 }
 
 pub struct Component {
@@ -29,7 +32,6 @@ pub struct Component {
   props: Props,
   fetch_autocomlete_options_task: Option<FetchTask>,
   value: String,
-  yahoo_service: yahoo::Service,
   selected_option: i32,
   deffered_hide_task: Option<TimeoutTask>,
 }
@@ -45,7 +47,6 @@ impl yew::Component for Component {
       props,
       fetch_autocomlete_options_task: None,
       value: "".to_string(),
-      yahoo_service: yahoo::Service {},
       selected_option: -1,
       deffered_hide_task: None,
     };
@@ -202,8 +203,10 @@ impl Component {
   }
 
   fn fetch_autocomplete_options(&mut self) {
-    self.fetch_autocomlete_options_task = Some(self.yahoo_service.autocomplete(
-      self.value.as_str().into(),
+    self.fetch_autocomlete_options_task = Some(self.props.rbp_service.get_search(
+      SearchQuery {
+        term: self.value.clone(),
+      },
       self.link.callback(Msg::AutoCompleteResutlsLoaded),
     ));
   }

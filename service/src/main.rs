@@ -4,7 +4,7 @@ use crate::actix_anyhow::AnyhowErrorWrapper;
 use actix_cors::Cors;
 use actix_web::error;
 use actix_web::{get, http, web::Json, App, HttpServer, Responder};
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use listenfd::ListenFd;
 use pyo3::prelude::*;
 use pyo3::types::IntoPyDict;
@@ -42,6 +42,7 @@ async fn main() -> std::io::Result<()> {
           .max_age(3600),
       )
       .service(get_weights)
+      .service(get_search)
   });
 
   // if we are given a tcp listener on listen fd 0, we use that one
@@ -65,6 +66,27 @@ async fn get_weights(query: QsQuery<core::GetWeightsQuery>) -> actix_web::Result
     Ok(weights) => Ok(Json(weights)),
     Err(anyhow_error) => Err(error::ErrorBadRequest(anyhow_error)),
   }
+}
+
+#[get("/service/v1/search")]
+async fn get_search(query: QsQuery<core::SearchQuery>) -> actix_web::Result<impl Responder> {
+  match find_tickers(&query).await {
+    Ok(result) => Ok(Json(result)),
+    Err(anyhow_error) => Err(error::ErrorBadRequest(anyhow_error)),
+  }
+}
+
+async fn find_tickers(query: &core::SearchQuery) -> anyhow::Result<serde_json::Value> {
+  let url = format!("https://finance.yahoo.com/_finance_doubledown/api/resource/searchassist;searchTerm={}?device=console&returnMeta=true", &query.term);
+  let mut json: serde_json::Value = reqwest::get(&url)
+    .await
+    .with_context(|| format!("Can't fetch URL {}", &url))?
+    .json()
+    .await
+    .with_context(|| "Can't parse json")?;
+  // will return Value::Null null if not found in json
+  let items = json["data"]["items"].take();
+  Ok(items)
 }
 
 // TODO move to py_bridge
@@ -108,4 +130,22 @@ fn calc_weights(py: Python, tickers: Vec<&str>) -> PyResult<anyhow::Result<Vec<f
     let tickers: Vec<&str> = missing_data.extract()?;
     Err(anyhow!("missing data for tickers {}", tickers.join(", ")))
   })
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use anyhow::Result;
+
+  #[ignore]
+  #[actix_rt::test]
+  async fn it_can_find_tickers() -> Result<()> {
+    let tickers = find_tickers(&core::SearchQuery {
+      term: "spy".to_string(),
+    })
+    .await?;
+    println!("Response: {}", serde_json::to_string(&tickers)?);
+
+    Ok(())
+  }
 }
