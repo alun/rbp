@@ -137,6 +137,7 @@ mod tests {
   use super::*;
   use anyhow::Result;
 
+  #[ignore]
   #[actix_rt::test]
   async fn it_can_find_tickers() -> Result<()> {
     let tickers = find_tickers(&core::SearchQuery {
