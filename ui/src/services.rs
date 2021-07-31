@@ -11,7 +11,6 @@ use yew::{
 };
 
 pub mod rpb;
-pub mod yahoo;
 
 trait Service {
   fn get<'a, Out, QueryParams>(

@@ -1,0 +1,2 @@
+ALLOWED_ORIGIN=http://rbp.local.katlex.com:8080 
+RUST_LOG=info 
