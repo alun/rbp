@@ -13,10 +13,10 @@ use yewtil::ptr::Mrc;
 static DEFAULT_TICKERS: Lazy<Vec<TickerInfo>> = Lazy::new(|| {
   serde_json::from_value(json!([
     {
-      "symbol": "FB",
-      "name": "Facebook, Inc.",
-      "exch": "NGM",
-      "exchDisp": "NASDAQ",
+      "symbol": "META",
+      "name": "Meta Platforms, Inc.",
+      "exch": "NYQ",
+      "exchDisp": "NYSE",
       "typeDisp": "Equity"
     },
     {
